@@ -1,0 +1,141 @@
+Prediction analysis for weight lifting
+========================================================
+
+
+This project uses data was collected from accelerometers on the belt, forearm, arm, and dumbell to predict the manner in which they performed their fitness exercise. The data consists of a training set and a test set and includes 159 features and one predictor ("classe" variable).
+
+This report describes how I built my model, why I made the choices I did and also uses my prediction model to predict 20 different test cases. 
+
+More information about the dataset is available from: 
+http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+
+## Useful libraries
+
+```{r}
+library(caret)
+library(randomForest)
+```
+
+
+## Load the data
+### Training set
+```{r cache=TRUE}
+train <- read.csv("./Data/pml-training.csv")
+dim(train)
+```
+
+### Test set
+```{r cache=TRUE}
+test <- read.csv("./Data/pml-testing.csv")
+dim(test)
+```
+
+## Create a validation set
+```{r}
+set.seed(12345)
+trainIndex = createDataPartition(train$classe, p = 0.80,list=FALSE)
+training = train[trainIndex,]
+validation = train[-trainIndex,]
+```
+
+## Exploratory data analysis (on the training set)
+### Quick look at the training dataset
+```{r}
+str(training)
+```
+
+### Find out the number of complete cases in the training dataset
+```{r}
+sum(complete.cases(training))
+```
+
+
+
+A quick look at the data reveals a lot of missing values. Additionally, the first 7 features provide irrelevant information (for instance user name, time stamp, etc.) in the context of this analysis. The subsequent steps help trimming data's dimensionality.
+
+
+```{r}
+# remove unnecessary columns: the first 7 features 
+training <- training[, 8:160]
+
+# compute the total number of non-zero entries for each column
+sum.non.zero.columns <- sapply(training, function(column){
+    sum(!(is.na(column) | column ==""))
+})
+
+# isolate columns labels for columns with non-missing values
+complete.columns <- names(sum.non.zero.columns[sum.non.zero.columns == length(training$classe)])
+
+# discard columns with missing data from the training set
+training <- training[, complete.columns]
+dim(training)
+```
+
+
+## Apply similar adjustments to the validation and test sets
+
+```{r}
+# validation set
+validation <- validation[, 8:160]
+validation <- validation[, complete.columns]
+
+# test set
+test <- test[, 8:160]
+test <- test[, c(complete.columns[-53], names(test[153]))]
+```
+
+
+## Build the predictive model
+### Train the data (Random Forest) using the training set
+
+A Random Forest approach seems adequate for this analysis (lots of data, lots of predictors, no linear assumption).
+
+
+```{r cache=TRUE}
+set.seed(56789)
+modFit <- randomForest(classe ~ ., data=training)
+```
+
+#### Output for a sample tree (tree #1; first 10 entries only)
+```{r}
+head(getTree(modFit, k=1), 10)
+```
+
+#### Visualization
+```{r}
+plot(modFit)
+```
+
+### Compute variable importance accross the whole forest (decreasing order)
+```{r}
+impGini <- as.data.frame(importance(modFit))
+impGini$feature <- row.names(impGini)
+impGini[order(impGini$MeanDecreaseGini, decreasing = T), ]
+```
+
+### How well did the model do on the training set?
+```{r}
+modFit
+```
+
+
+Based on the Random Forest output (above), the overall error rate for the model is low (0.43%). The majority of the 15,699 entries are of class A (i.e. 4462). The confusion matrix for the training set indicates a few missing values. Overall, the Random Forest model fits the training set well.
+
+
+### How well did the model do on the validation set?
+```{r}
+# confusion matrix
+confusionMatrix(predict(modFit,newdata=validation[,-53]),validation$classe)
+```
+
+```
+The first table of this confusion matrix indicates that the Random Forest model missed a few values in the validation set, but was overall pretty accurate with the prediction.
+
+The overall statistics are pretty high, suggesting that the model performs adequately.
+```
+
+## Run the predictive model on the test set
+```{r}
+predict(modFit, test)
+```
