@@ -370,15 +370,8 @@ modFit
 ## E    0    0    2    7 2877    0.003119
 ```
 
-
-Based on the Random Forest output (above), the overall error rate for the model is low (0.43%). The majority of the 15,699 entries are of class A (i.e. 4462). The confusion matrix for the training set indicates a few missing values. Overall, the Random Forest model fits the training set well.
-
-
-### How well did the model do on the validation set?
-
 ```r
-# confusion matrix
-confusionMatrix(predict(modFit,newdata=validation[,-53]),validation$classe)
+confusionMatrix(predict(modFit,newdata=training[,-53]),training$classe)
 ```
 
 ```
@@ -390,9 +383,54 @@ confusionMatrix(predict(modFit,newdata=validation[,-53]),validation$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
+##          A 4464    0    0    0    0
+##          B    0 3038    0    0    0
+##          C    0    0 2738    0    0
+##          D    0    0    0 2573    0
+##          E    0    0    0    0 2886
+## 
+## Overall Statistics
+##                                 
+##                Accuracy : 1     
+##                  95% CI : (1, 1)
+##     No Information Rate : 0.284 
+##     P-Value [Acc > NIR] : <2e-16
+##                                 
+##                   Kappa : 1     
+##  Mcnemar's Test P-Value : NA    
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             1.000    1.000    1.000    1.000    1.000
+## Specificity             1.000    1.000    1.000    1.000    1.000
+## Pos Pred Value          1.000    1.000    1.000    1.000    1.000
+## Neg Pred Value          1.000    1.000    1.000    1.000    1.000
+## Prevalence              0.284    0.194    0.174    0.164    0.184
+## Detection Rate          0.284    0.194    0.174    0.164    0.184
+## Detection Prevalence    0.284    0.194    0.174    0.164    0.184
+## Balanced Accuracy       1.000    1.000    1.000    1.000    1.000
+```
+
+
+Based on the Random Forest output (above), the overall error rate for the model is low (0.43%). The majority of the 15,699 entries are of class A (i.e. 4462). The confusion matrix for the training set indicates an **in-sample accuracy** of 100% on our training set. We expect the out of sample error to be lower with cross-validation. Overall, the Random Forest model fits the training set well.
+
+
+### How well did the model do on the validation set?
+
+```r
+# confusion matrix
+confusionMatrix(predict(modFit,newdata=validation[,-53]),validation$classe)
+```
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
 ##          A 1116    3    0    0    0
-##          B    0  756   10    0    0
-##          C    0    0  674    9    0
+##          B    0  755   10    0    0
+##          C    0    1  674    9    0
 ##          D    0    0    0  634    2
 ##          E    0    0    0    0  719
 ## 
@@ -409,21 +447,20 @@ confusionMatrix(predict(modFit,newdata=validation[,-53]),validation$classe)
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             1.000    0.996    0.985    0.986    0.997
+## Sensitivity             1.000    0.995    0.985    0.986    0.997
 ## Specificity             0.999    0.997    0.997    0.999    1.000
-## Pos Pred Value          0.997    0.987    0.987    0.997    1.000
+## Pos Pred Value          0.997    0.987    0.985    0.997    1.000
 ## Neg Pred Value          1.000    0.999    0.997    0.997    0.999
 ## Prevalence              0.284    0.193    0.174    0.164    0.184
-## Detection Rate          0.284    0.193    0.172    0.162    0.183
+## Detection Rate          0.284    0.192    0.172    0.162    0.183
 ## Detection Prevalence    0.285    0.195    0.174    0.162    0.183
 ## Balanced Accuracy       0.999    0.996    0.991    0.993    0.999
 ```
 
-```
-The first table of this confusion matrix indicates that the Random Forest model missed a few values in the validation set, but was overall pretty accurate with the prediction.
+The first table of this confusion matrix indicates that the Random Forest model missed a few values in the validation set, but was overall pretty accurate with the prediction. As expected, the **out of sample error** is lower and the accuracy of the model with cross-validation is 99%.
 
 The overall statistics are pretty high, suggesting that the model performs adequately.
-```
+
 
 ## Run the predictive model on the test set
 

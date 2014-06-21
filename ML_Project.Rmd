@@ -117,10 +117,11 @@ impGini[order(impGini$MeanDecreaseGini, decreasing = T), ]
 ### How well did the model do on the training set?
 ```{r}
 modFit
+confusionMatrix(predict(modFit,newdata=training[,-53]),training$classe)
 ```
 
 
-Based on the Random Forest output (above), the overall error rate for the model is low (0.43%). The majority of the 15,699 entries are of class A (i.e. 4462). The confusion matrix for the training set indicates a few missing values. Overall, the Random Forest model fits the training set well.
+Based on the Random Forest output (above), the overall error rate for the model is low (0.43%). The majority of the 15,699 entries are of class A (i.e. 4462). The confusion matrix for the training set indicates an **in-sample accuracy** of 100% on our training set. We expect the out of sample error to be lower with cross-validation. Overall, the Random Forest model fits the training set well.
 
 
 ### How well did the model do on the validation set?
@@ -129,11 +130,10 @@ Based on the Random Forest output (above), the overall error rate for the model 
 confusionMatrix(predict(modFit,newdata=validation[,-53]),validation$classe)
 ```
 
-```
-The first table of this confusion matrix indicates that the Random Forest model missed a few values in the validation set, but was overall pretty accurate with the prediction.
+The first table of this confusion matrix indicates that the Random Forest model missed a few values in the validation set, but was overall pretty accurate with the prediction. As expected, the **out of sample error** is lower and the accuracy of the model with cross-validation is 99%.
 
 The overall statistics are pretty high, suggesting that the model performs adequately.
-```
+
 
 ## Run the predictive model on the test set
 ```{r}
